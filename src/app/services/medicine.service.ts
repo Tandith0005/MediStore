@@ -41,7 +41,7 @@ export const fetchMyMedicines = async () => {
 
 export const deleteMedicine = async (id: string) => {
   try {
-    await fetch(`https://medi-store-server-tau.vercel.app/api/medicine/${id}`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/medicine/${id}`, {
       method: "DELETE",
       credentials: "include",
     });
