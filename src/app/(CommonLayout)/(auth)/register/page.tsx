@@ -49,6 +49,8 @@ const Register = () => {
     setPassword("");
     setRole("CUSTOMER");
     setImage("");
+
+    window.location.href = "/";
   };
 
   return (
