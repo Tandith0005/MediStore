@@ -35,7 +35,7 @@ const Register = () => {
       callbackURL: "/",
     });
 
-    window.location.href = "/";
+  
     setLoading(false);
 
     if (res.error) {
