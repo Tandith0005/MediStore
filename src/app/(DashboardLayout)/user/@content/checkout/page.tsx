@@ -63,7 +63,7 @@ const Checkout = () => {
   e.preventDefault();
 
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/order`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
 
