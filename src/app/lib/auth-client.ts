@@ -1,26 +1,11 @@
 import { inferAdditionalFields } from "better-auth/client/plugins";
-import { createAuthClient } from "better-auth/react"
-// export const authClient = createAuthClient({
-//     baseURL: `${process.env.NEXT_PUBLIC_API_URL}`
-// })
-
-// export const authClient = createAuthClient({
-//   baseURL: typeof window !== "undefined" ? window.location.origin : "",
-//   fetchOptions: {
-//     credentials: "include",
-//   },
-// });
-
-// export const authClient = createAuthClient({
-//   baseURL: process.env.NEXT_PUBLIC_AUTH_URL!,
-//   fetchOptions: {
-//     credentials: "include",
-//   },
-// });
+import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
- /** The base URL of the server (optional if you're using the same domain) */
-  baseURL: `${process.env.NEXT_PUBLIC_API_URL}`,
+  baseURL:
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://level-2-assignment-4-blue.vercel.app",
   plugins: [
     inferAdditionalFields({
       user: { role: { type: "string" } },

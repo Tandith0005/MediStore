@@ -1,30 +1,36 @@
-import { cookies, headers } from "next/headers";
-import { toast } from "react-toastify";
+import {
+  cookies,
+  //  headers
+} from "next/headers";
+
+// import { toast } from "react-toastify";
 
 export const userService = {
-  //  If you are looking for admin's get all user logic it's not here, go to admin/@content/all-users/page.tsx
   getSession: async function () {
     try {
-      // const cookieStore = await cookies();
-      const reqHeaders = await headers();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_AUTH_URL}/get-session`,
-        {
-          headers: reqHeaders,
-          cache: "no-store",
+      const cookieStore = await cookies();
+      // const allHeaders = await headers();
+
+      // IMPORTANT: Use the ACTUAL backend URL here for the server-to-server call
+      const BACKEND_URL = "https://medi-store-server-tau.vercel.app/api/auth";
+
+      const res = await fetch(`${BACKEND_URL}/get-session`, {
+        headers: {
+          // Pass the cookies manually from the browser to the backend
+          cookie: cookieStore.toString(),
+          // Pass the origin so better-auth doesn't get confused
+          origin: "https://level-2-assignment-4-blue.vercel.app",
         },
-      );
+        cache: "no-store",
+      });
+
+      if (!res.ok) return { data: null, error: "Network response was not ok" };
+
       const session = await res.json();
-
-    if (!session) {
-      return {data: null, error: {message: "Session not found"}};
-    }
-
-    return {data: session, error: null};
-
+      return { data: session, error: null };
     } catch (error) {
-        console.log(error)
-      return {data: null, error: error}
+      console.error("Session Fetch Error:", error);
+      return { data: null, error: error };
     }
   },
 
@@ -37,7 +43,7 @@ export const userService = {
           cookie: cookieStore.toString(),
         },
         cache: "no-store",
-        credentials: "include"
+        credentials: "include",
       });
     } catch (error) {
       console.log(error);

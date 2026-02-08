@@ -8,7 +8,7 @@ export interface DashboardStats {
 }
 
 export const fetchDashboardStats = async (): Promise<DashboardStats> => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/adminDashboard-stats`, {
+  const res = await fetch(`https://medi-store-server-tau.vercel.app/api/adminDashboard-stats`, {
     credentials: "include",
     cache: "no-store", 
   });

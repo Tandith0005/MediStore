@@ -15,14 +15,18 @@ const nextConfig = {
       },
     ],
   },
-  async rewrite() {
+  async rewrites() {
     return [
       {
-        source: '/api/:path*',
+        source: "/api/auth/:path*",
+        destination: `https://medi-store-server-tau.vercel.app/api/auth/:path*`,
+      },
+      {
+        source: "/api/:path*",
         destination: `https://medi-store-server-tau.vercel.app/api/:path*`,
       },
-    ]
-  }
+    ];
+  },
 }
 
 module.exports = nextConfig
