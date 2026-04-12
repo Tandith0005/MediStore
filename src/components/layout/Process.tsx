@@ -1,4 +1,4 @@
-import { Steps } from "@/app/constants";
+import { Steps } from "@/constants";
 
 
 const Process = () => {

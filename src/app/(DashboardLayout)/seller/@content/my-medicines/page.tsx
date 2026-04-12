@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
-import { fetchMyMedicines, deleteMedicine } from "@/app/services/medicine.service"; // your service functions
+import { fetchMyMedicines, deleteMedicine } from "@/services/medicine.service"; // your service functions
 import { toast } from "react-toastify";
 
 type Medicine = {

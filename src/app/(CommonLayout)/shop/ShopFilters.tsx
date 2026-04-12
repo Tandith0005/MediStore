@@ -1,6 +1,6 @@
 "use client";
 
-import { categories, manufacturers, priceRanges } from "@/app/constants";
+import { categories, manufacturers, priceRanges } from "@/constants";
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

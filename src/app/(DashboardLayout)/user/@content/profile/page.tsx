@@ -1,4 +1,4 @@
-import { userService } from "@/app/services/user.service";
+import { userService } from "@/services/user.service";
 import ProfileActions from "./ProfileActions";
 
 const Profile = async () => {

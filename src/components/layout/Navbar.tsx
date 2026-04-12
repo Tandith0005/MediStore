@@ -1,5 +1,5 @@
-import { NavLinks } from "@/app/constants";
-import { userService } from "@/app/services/user.service";
+import { NavLinks } from "@/constants";
+import { userService } from "@/services/user.service";
 
 import Image from "next/image";
 import Link from "next/link";

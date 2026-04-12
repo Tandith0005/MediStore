@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { authClient } from "@/app/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { toast } from "react-toastify";
 import Image from "next/image";
 

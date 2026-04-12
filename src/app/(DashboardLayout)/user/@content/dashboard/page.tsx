@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShoppingCart, PackageCheck, User } from "lucide-react";
-import { fetchUserOrders } from "@/app/services/orders.service";
-import { fetchCart } from "@/app/services/cart.service";
+import { fetchUserOrders } from "@/services/orders.service";
+import { fetchCart } from "@/services/cart.service";
 
 
 interface OrderItem {

@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShoppingCart, Package } from "lucide-react";
-import { fetchMedicines } from "@/app/services/medicine.service";
-import { fetchSellerOrders } from "@/app/services/orders.service";
+import { fetchMedicines } from "@/services/medicine.service";
+import { fetchSellerOrders } from "@/services/orders.service";
 
 interface Medicine {
   id: string;

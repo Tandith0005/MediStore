@@ -1,5 +1,5 @@
-import { Medicine } from "@/app/constants";
-import { fetchFilteredMedicines } from "@/app/services/medicine.service";
+import { Medicine } from "@/constants";
+import { fetchFilteredMedicines } from "@/services/medicine.service";
 import Image from "next/image";
 import Link from "next/link";
 import ShopFilters from "./ShopFilters";

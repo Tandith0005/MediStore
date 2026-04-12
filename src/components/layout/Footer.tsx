@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { QuickLinks } from "@/app/constants";
+import { QuickLinks } from "@/constants";
 
 const Footer = () => {
   return (

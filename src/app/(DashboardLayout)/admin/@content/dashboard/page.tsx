@@ -1,5 +1,5 @@
 // app/admin/dashboard/page.tsx
-import { fetchDashboardStats } from "@/app/services/adminDashboard.service";
+import { fetchDashboardStats } from "@/services/adminDashboard.service";
 import { Users, Package, ShoppingCart, Layers } from "lucide-react";
 
 

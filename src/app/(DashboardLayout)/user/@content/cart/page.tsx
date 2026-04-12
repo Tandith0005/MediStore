@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Trash2, Plus, Minus, ArrowRight, ShoppingCart } from "lucide-react";
-import { deleteItemsInCart, minusCart, upsertCart } from "@/app/services/cart.service";
+import { deleteItemsInCart, minusCart, upsertCart } from "@/services/cart.service";
 
 interface CartItem {
   id: string;

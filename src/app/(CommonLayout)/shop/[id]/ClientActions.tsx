@@ -1,9 +1,9 @@
 "use client";
 
-import { upsertCart } from "@/app/services/cart.service";
+import { upsertCart } from "@/services/cart.service";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { SessionResult } from "@/app/constants";
+import { SessionResult } from "@/constants";
 
 interface Props {
   medicineId: string;

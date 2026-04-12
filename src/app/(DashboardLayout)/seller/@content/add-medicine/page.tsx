@@ -1,7 +1,7 @@
 "use client";
 
-import { categories, manufacturers } from "@/app/constants";
-import uploadToImgbb from "@/app/services/uploadImg.service";
+import { categories, manufacturers } from "@/constants";
+import uploadToImgbb from "@/services/uploadImg.service";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 

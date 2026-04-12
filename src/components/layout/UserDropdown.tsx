@@ -1,6 +1,7 @@
 "use client"; 
 
-import { User } from "@/app/constants";
+import { User } from "@/constants";
+import { authClient } from "@/lib/auth-client";
 import { CircleUserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,22 +11,15 @@ export const UserDropdown = ({ user }: { user: User }) => {
   const router = useRouter();
   const handleLogout = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_AUTH_URL}/sign-out`,
-        {
-          method: "POST",
-          credentials: "include",
-        },
-      );
-
+      await authClient.signOut();
       toast.success("Logged out successfully");
-
-      window.location.href = "/";
+      router.push("/");
+      router.refresh();
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("An error occurred during logout.");
     }
-  };
+  };;
 
   return (
     <details className="dropdown">

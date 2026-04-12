@@ -16,14 +16,17 @@ const nextConfig = {
     ],
   },
   async rewrites() {
+    const authDestination = process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:5000/api/auth";
+    const apiDestination = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+
     return [
       {
         source: "/api/auth/:path*",
-        destination: `https://medi-store-server-tau.vercel.app/api/auth/:path*`,
+        destination: `${authDestination}/:path*`,
       },
       {
         source: "/api/:path*",
-        destination: `https://medi-store-server-tau.vercel.app/api/:path*`,
+        destination: `${apiDestination}/:path*`,
       },
     ];
   },

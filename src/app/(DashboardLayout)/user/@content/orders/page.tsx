@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { fetchUserOrders } from "@/app/services/orders.service";
+import { fetchUserOrders } from "@/services/orders.service";
 
 interface OrderItem {
   id: string;

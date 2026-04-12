@@ -1,10 +1,10 @@
-import { upsertCart } from "@/app/services/cart.service";
-import { fetchSpecificMedicine } from "@/app/services/medicine.service";
+import { upsertCart } from "@/services/cart.service";
+import { fetchSpecificMedicine } from "@/services/medicine.service";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import ClientActions from "./ClientActions";
-import { userService } from "@/app/services/user.service";
+import { userService } from "@/services/user.service";
 
 const ShopSpecificItem = async({ params }: { params: { id: string } }) => {
   const { id } = await params;

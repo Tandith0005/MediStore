@@ -1,4 +1,4 @@
-import { reviewsData } from "@/app/constants";
+import { reviewsData } from "@/constants";
 import Image from "next/image";
 
 
