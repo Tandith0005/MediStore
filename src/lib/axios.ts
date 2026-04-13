@@ -37,9 +37,7 @@ api.interceptors.response.use(
       const status = error.response.status;
 
       if (status === 401) {
-        // Unauthorized - redirect to login or clear session
         console.warn("Unauthorized - Session expired");
-        // You can trigger logout here later
       }
 
       if (status === 403) {

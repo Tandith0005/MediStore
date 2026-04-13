@@ -1,82 +1,105 @@
-export const fetchMedicines = async () => {
-  try {
-    const res = await fetch(
-      `https://medi-store-server-tau.vercel.app/api/medicine`,
-      {
-        cache: "no-store",
-      },
-    );
-    const medicines = await res.json();
-    return medicines;
-  } catch (error) {
-    console.log(error);
-  }
-};
+// src/services/medicine.service.ts
+import api from "@/lib/axios";
+import { envVars } from "@/config/envVars";
 
-export const fetchSpecificMedicine = async (id: string) => {
-  try {
-    const res = await fetch(
-      `https://medi-store-server-tau.vercel.app/api/medicine/${id}`,
-      { cache: "no-store", credentials: "include" },
-    );
-    const medicine = await res.json();
-    return medicine;
-  } catch (error) {
-    console.log(error);
-  }
-};
+export interface Medicine {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  stock: number;
+  categoryId: string;
+  category?: { id: string; name: string };
+  manufacturer: string;
+  sellerId: string;
+  createdAt: string;
+  updatedAt: string;
+  averageRating?: number;
+  totalReviews?: number;
+}
 
-export const fetchMyMedicines = async () => {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/medicine/my`, {
-      cache: "no-store",
-      credentials: "include",
-    });
-    const medicines = await res.json();
-    return medicines;
-  } catch (error) {
-    console.log(error);
-  }
-};
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPage: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
 
-export const deleteMedicine = async (id: string) => {
-  try {
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/medicine/${id}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
 
-// filter medicine ------------------
-type FilterParams = {
+export interface FilterParams {
   search?: string;
   category?: string;
   manufacturer?: string;
-  minPrice?: string;
-  maxPrice?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  page?: number;
+  limit?: number;
+  sortBy?: "price" | "createdAt" | "name";
+  sortOrder?: "asc" | "desc";
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  meta?: PaginationMeta;
+}
+
+// Get all medicines with pagination & filters
+export const fetchMedicines = async (params?: FilterParams): Promise<ApiResponse<Medicine[]>> => {
+  const queryParams = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        queryParams.append(key, value.toString());
+      }
+    });
+  }
+  const queryString = queryParams.toString();
+  const url = `/medicine${queryString ? `?${queryString}` : ""}`;
+
+  const response = await api.get<ApiResponse<Medicine[]>>(url);
+  return response.data; 
 };
 
-export const fetchFilteredMedicines = async (params?: FilterParams) => {
-  const query = params
-    ? "?" +
-      new URLSearchParams(
-        Object.entries(params).filter(
-          ([_, v]) => v !== undefined && v !== "",
-        ) as [string, string][],
-      ).toString()
-    : "";
+// Get single medicine
+export const fetchSpecificMedicine = async (id: string) => {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/medicine/${id}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  const json = await res.json();
+  return json.data as Medicine; // unwrap { success, message, data }
+};
 
-  const res = await fetch(
-    `https://medi-store-server-tau.vercel.app/api/medicine${query}`,
-    { cache: "no-store" },
-  );
+// Get seller's own medicines
+export const fetchMyMedicines = async () => {
+  const response = await api.get<Medicine[]>("/medicine/my");
+  return response.data;
+};
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch medicines");
-  }
+// Delete medicine
+export const deleteMedicine = async (id: string) => {
+  await api.delete(`/medicine/${id}`);
+};
 
-  return res.json();
+// Create medicine
+export const createMedicine = async (data: FormData) => {
+  const response = await api.post("/medicine", data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
+
+// Update medicine
+export const updateMedicine = async (id: string, data: Partial<Medicine>) => {
+  const response = await api.patch(`/medicine/${id}`, data);
+  return response.data;
 };
