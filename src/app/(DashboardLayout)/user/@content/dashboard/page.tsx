@@ -1,161 +1,176 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// src/app/(dashboardLayout)/user/@content/dashboard/page.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { ShoppingCart, PackageCheck, User } from "lucide-react";
-import { fetchUserOrders } from "@/services/orders.service";
-import { fetchCart } from "@/services/cart.service";
+import { ShoppingCart, PackageCheck, Star, AlertCircle, Loader2 } from "lucide-react";
+import { useUserDashboardStats, useUserCart } from "@/hooks/useUserDashboard";
 
+export default function UserDashboard() {
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useUserDashboardStats();
+  const { data: cartData, isLoading: cartLoading } = useUserCart();
 
-interface OrderItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image?: string;
-}
+  console.log("Cart Data:", cartData);
+console.log("Stats Data:", stats);
 
-interface Order {
-  id: string;
-  date: string;
-  status: string;
-  total: number;
-  items: OrderItem[];
-}
+  // Safely extract cart items and count
+  const cartItemCount = React.useMemo(() => {
+    if (!cartData) return 0;
+    // If cartData is an array (items)
+    if (Array.isArray(cartData)) {
+      return cartData.reduce((sum, item) => sum + (item.quantity || 0), 0);
+    }
+    // If cartData has items property
+    if (cartData && typeof cartData === 'object' && 'items' in cartData) {
+      return (cartData as any).items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0;
+    }
+    // If cartData has summary property
+    if (cartData && typeof cartData === 'object' && 'summary' in cartData) {
+      return (cartData as any).summary?.totalItems || 0;
+    }
+    return 0;
+  }, [cartData]);
 
-interface CartItem {
-  id: string;
-  quantity: number;
-  medicine: {
-    id: string;
-    name: string;
-    price: number;
-    image?: string;
+  // Safely extract stats overview
+  const overview = stats?.overview || {
+    totalOrders: 0,
+    totalSpent: 0,
+    totalReviews: 0,
+    pendingOrders: 0,
+    completedOrders: 0,
+    cancelledOrders: 0,
   };
-}
 
-const UserDashboard = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const recentOrders = stats?.recentOrders || [];
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const ordersData = await fetchUserOrders();
-        const cartData = await fetchCart();
-        setOrders(ordersData);
-        setCartItems(cartData);
-      } catch (err) {
-        console.error("Failed to fetch dashboard data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
-  if (loading) {
+  if (statsLoading || cartLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary" />
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-gray-500">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (statsError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center text-red-500">
+          <AlertCircle className="w-12 h-12 mx-auto mb-3" />
+          <p>Failed to load dashboard</p>
+          <button onClick={() => window.location.reload()} className="btn btn-sm btn-primary mt-3">
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-10">
-      <main className="container mx-auto px-4 md:px-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center mb-8">
-          <h1 className="text-2xl font-bold text-blue-600">
-            Welcome back 👋
-          </h1>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-blue-600">My Dashboard</h1>
+          <p className="text-gray-500 mt-1">Welcome back! Here&apos;s your activity summary</p>
+        </div>
 
-          <Link href="/shop">
-            <button className="btn btn-primary w-full sm:w-auto">
-              Shop Medicines
-            </button>
+        <Link href="/shop">
+          <button className="btn btn-primary w-full sm:w-auto">Continue Shopping</button>
+        </Link>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-white shadow rounded-xl p-5 border-l-4 border-blue-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm">Total Orders</p>
+              <p className="text-2xl font-bold">{overview.totalOrders || 0}</p>
+            </div>
+            <PackageCheck className="w-8 h-8 text-blue-500" />
+          </div>
+        </div>
+
+        <div className="bg-white shadow rounded-xl p-5 border-l-4 border-green-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm">Total Spent</p>
+              <p className="text-2xl font-bold">৳{(overview.totalSpent || 0).toLocaleString()}</p>
+            </div>
+            <ShoppingCart className="w-8 h-8 text-green-500" />
+          </div>
+        </div>
+
+        <div className="bg-white shadow rounded-xl p-5 border-l-4 border-purple-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm">Cart Items</p>
+              <p className="text-2xl font-bold">{cartItemCount}</p>
+            </div>
+            <ShoppingCart className="w-8 h-8 text-purple-500" />
+          </div>
+        </div>
+
+        <div className="bg-white shadow rounded-xl p-5 border-l-4 border-yellow-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm">Reviews</p>
+              <p className="text-2xl font-bold">{overview.totalReviews || 0}</p>
+            </div>
+            <Star className="w-8 h-8 text-yellow-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Orders */}
+      <div className="bg-white shadow rounded-xl p-5">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Recent Orders</h2>
+          <Link href="/user/orders" className="text-blue-500 hover:underline text-sm">
+            View All →
           </Link>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white shadow rounded p-6 flex flex-col items-center">
-            <PackageCheck className="w-10 h-10 text-blue-500 mb-2" />
-            <p className="text-gray-500">My Orders</p>
-            <p className="text-xl font-bold">{orders.length}</p>
-          </div>
-
-          <div className="bg-white shadow rounded p-6 flex flex-col items-center">
-            <ShoppingCart className="w-10 h-10 text-green-500 mb-2" />
-            <p className="text-gray-500">Cart Items</p>
-            <p className="text-xl font-bold">
-              {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-            </p>
-          </div>
-        </div>
-
-        {/* Recent Orders */}
-        <div className="bg-white shadow rounded p-4 md:p-6">
-          <h2 className="text-lg font-semibold mb-4">Recent Orders</h2>
-
-          {orders.length === 0 ? (
-            <p className="text-gray-500 text-center py-6">
-              You haven’t placed any orders yet.
-            </p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="table table-zebra w-full">
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Medicine</th>
-                    <th>Quantity</th>
-                    <th>Status</th>
+        {recentOrders.length === 0 ? (
+          <p className="text-gray-500 text-center py-6">No orders yet</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="table table-zebra w-full">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Date</th>
+                  <th>Items</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentOrders.slice(0, 5).map((order) => (
+                  <tr key={order.id}>
+                    <td>#{order.id?.slice(-8) || order.id}</td>
+                    <td>{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "N/A"}</td>
+                    <td>{order.items?.length || 0} items</td>
+                    <td>৳{(order.total || 0).toFixed(2)}</td>
+                    <td>
+                      <span className={`badge ${
+                        order.status === "PENDING" ? "badge-warning" :
+                        order.status === "COMPLETED" ? "badge-success" : "badge-error"
+                      }`}>
+                        {order.status || "PENDING"}
+                      </span>
+                    </td>
                   </tr>
-                </thead>
-
-                <tbody>
-                  {orders
-                    .slice(0, 5) // show last 5 orders
-                    .map((order) =>
-                      order.items.map((item, idx) => (
-                        <tr key={`${order.id}-${item.id}`}>
-                          {idx === 0 && (
-                            <td rowSpan={order.items.length}>#{order.id}</td>
-                          )}
-                          <td>{item.name}</td>
-                          <td>{item.quantity}</td>
-                          {idx === 0 && (
-                            <td rowSpan={order.items.length}>
-                              <span
-                                className={`badge ${
-                                  order.status === "Pending"
-                                    ? "badge-warning"
-                                    : "badge-success"
-                                }`}
-                              >
-                                {order.status}
-                              </span>
-                            </td>
-                          )}
-                        </tr>
-                      ))
-                    )}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          <p className="mt-3 text-xs text-gray-500 text-center md:hidden">
-            Scroll horizontally to see all columns →
-          </p>
-        </div>
-      </main>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
-};
-
-export default UserDashboard;
+}

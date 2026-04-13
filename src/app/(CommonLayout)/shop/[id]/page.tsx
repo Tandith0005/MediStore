@@ -6,6 +6,7 @@ import ClientActions from "./ClientActions";
 import { notFound } from "next/navigation";
 import { Star, Package, Truck, Shield, MapPin, Clock } from "lucide-react";
 import { Suspense } from "react";
+import ProductReviews from "./ProductReviews";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -87,13 +88,13 @@ function ProductSkeleton() {
 
 export default async function ShopSpecificItem({ params }: Props) {
   const { id } = await params;
-  
+
   if (!id || id === "undefined") {
     notFound();
   }
 
   const medicine = await fetchSpecificMedicine(id);
-  
+
   if (!medicine || !medicine.id) {
     notFound();
   }
@@ -103,19 +104,27 @@ export default async function ShopSpecificItem({ params }: Props) {
   return (
     <div className="min-h-screen pt-28 pb-16 bg-gray-50">
       <div className="container mx-auto px-4">
-
         {/* Breadcrumb */}
         <div className="text-sm breadcrumbs mb-6">
           <ul className="flex gap-2 text-gray-600">
-            <li><Link href="/" className="hover:text-primary">Home</Link></li>
-            <li><Link href="/shop" className="hover:text-primary">Shop</Link></li>
-            <li className="text-gray-400 line-clamp-1 max-w-[200px]">{medicine.name}</li>
+            <li>
+              <Link href="/" className="hover:text-primary">
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link href="/shop" className="hover:text-primary">
+                Shop
+              </Link>
+            </li>
+            <li className="text-gray-400 line-clamp-1 max-w-[200px]">
+              {medicine.name}
+            </li>
           </ul>
         </div>
 
         {/* Product Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 bg-white p-6 rounded-xl shadow-md">
-
           {/* Image Section */}
           <div className="flex justify-center items-center bg-gray-50 rounded-xl p-8">
             {medicine.image ? (
@@ -142,7 +151,7 @@ export default async function ShopSpecificItem({ params }: Props) {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 {medicine.name}
               </h1>
-              
+
               {/* Rating */}
               {medicine.averageRating ? (
                 <div className="flex items-center gap-2 mb-3">
@@ -159,7 +168,8 @@ export default async function ShopSpecificItem({ params }: Props) {
                     ))}
                   </div>
                   <span className="text-sm text-gray-600">
-                    {medicine.averageRating} ({medicine.totalReviews || 0} reviews)
+                    {medicine.averageRating} ({medicine.totalReviews || 0}{" "}
+                    reviews)
                   </span>
                 </div>
               ) : (
@@ -170,7 +180,9 @@ export default async function ShopSpecificItem({ params }: Props) {
 
               {/* Stock Status */}
               <div className="flex items-center gap-2 mb-4">
-                <div className={`badge ${!isOutOfStock ? "badge-success" : "badge-error"} gap-1`}>
+                <div
+                  className={`badge ${!isOutOfStock ? "badge-success" : "badge-error"} gap-1`}
+                >
                   <Package className="w-3 h-3" />
                   {!isOutOfStock ? "In Stock" : "Out of Stock"}
                 </div>
@@ -194,11 +206,15 @@ export default async function ShopSpecificItem({ params }: Props) {
             <div className="grid grid-cols-2 gap-4 py-4 border-y border-gray-100">
               <div>
                 <p className="text-sm text-gray-500">Manufacturer</p>
-                <p className="font-medium">{medicine.manufacturer || "Not specified"}</p>
+                <p className="font-medium">
+                  {medicine.manufacturer || "Not specified"}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Category</p>
-                <p className="font-medium">{medicine.category?.name || "Uncategorized"}</p>
+                <p className="font-medium">
+                  {medicine.category?.name || "Uncategorized"}
+                </p>
               </div>
             </div>
 
@@ -209,12 +225,17 @@ export default async function ShopSpecificItem({ params }: Props) {
                 ৳{medicine.price}
               </p>
               {medicine.price > 500 && !isOutOfStock && (
-                <p className="text-sm text-green-600 mt-1">✓ Free shipping eligible</p>
+                <p className="text-sm text-green-600 mt-1">
+                  ✓ Free shipping eligible
+                </p>
               )}
             </div>
 
             {/* Actions */}
-            <ClientActions medicineId={medicine.id} isOutOfStock={isOutOfStock} />
+            <ClientActions
+              medicineId={medicine.id}
+              isOutOfStock={isOutOfStock}
+            />
 
             {/* Shipping Info */}
             <div className="mt-6 pt-4 border-t border-gray-100">
@@ -239,6 +260,8 @@ export default async function ShopSpecificItem({ params }: Props) {
             </div>
           </div>
         </div>
+      {/* Reviews Section */}
+      <ProductReviews medicineId={medicine.id} />
       </div>
     </div>
   );

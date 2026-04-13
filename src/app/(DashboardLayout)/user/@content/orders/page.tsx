@@ -1,125 +1,174 @@
+// src/app/(dashboardLayout)/user/@content/orders/page.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
-import { fetchUserOrders } from "@/services/orders.service";
+import Link from "next/link";
+import { Package, ChevronDown, ChevronUp, Loader2, AlertCircle } from "lucide-react";
+import { useUserOrders } from "@/hooks/useUserDashboard";
 
-interface OrderItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image?: string;
-}
+const statusColors = {
+  PENDING: "badge-warning",
+  COMPLETED: "badge-success",
+  CANCELLED: "badge-error",
+};
 
-interface Order {
-  id: string;
-  date: string;
-  status: string;
-  total: number;
-  items: OrderItem[];
-}
+const statusLabels = {
+  PENDING: "Pending",
+  COMPLETED: "Delivered",
+  CANCELLED: "Cancelled",
+};
 
-const Orders = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function OrdersPage() {
+  const { data: orders, isLoading, isError, refetch } = useUserOrders();
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadOrders = async () => {
-      try {
-        const data = await fetchUserOrders();
-        setOrders(data);
-      } catch (err) {
-        console.error("Failed to fetch orders:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const toggleExpand = (orderId: string) => {
+    setExpandedOrder(expandedOrder === orderId ? null : orderId);
+  };
 
-    loadOrders();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-gray-500">Loading your orders...</p>
+        </div>
       </div>
     );
   }
 
-  if (orders.length === 0) {
+  if (isError) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500 text-lg">You haven’t placed any orders yet.</p>
+        <div className="text-center text-red-500">
+          <AlertCircle className="w-12 h-12 mx-auto mb-3" />
+          <p>Failed to load orders</p>
+          <button onClick={() => refetch()} className="btn btn-sm btn-primary mt-3">
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!orders || orders.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-center">
+        <Package className="w-20 h-20 text-gray-300 mb-4" />
+        <h2 className="text-2xl font-semibold text-gray-600 mb-2">No orders yet</h2>
+        <p className="text-gray-500 mb-6">You haven&apos;t placed any orders yet</p>
+        <Link href="/shop" className="btn btn-primary">
+          Start Shopping
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-6xl mx-auto px-4 space-y-6">
-        <h1 className="text-2xl font-bold text-blue-600 mb-6">My Orders</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-blue-600">My Orders</h1>
+        <p className="text-gray-500 mt-1">Track and manage your orders</p>
+      </div>
 
+      <div className="space-y-4">
         {orders.map((order) => (
-          <div key={order.id} className="bg-white rounded-xl shadow-sm p-6 mb-6">
-            {/* Header */}
-            <div className="flex flex-wrap justify-between items-center gap-4 border-b pb-4 mb-4">
-              <div>
-                <p className="font-semibold">
-                  Order ID: <span className="text-gray-600">{order.id}</span>
-                </p>
-                <p className="text-sm text-gray-500">Placed on {order.date}</p>
-              </div>
-              <span
-                className={`px-4 py-1 rounded-full text-sm font-medium ${
-                  order.status === "Pending"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-green-100 text-green-700"
-                }`}
-              >
-                {order.status}
-              </span>
-            </div>
-
-            {/* Items */}
-            <div className="space-y-4">
-              {order.items.map((item) => (
-                <div key={item.id} className="flex items-center gap-4">
-                  <div className="w-16 h-16 relative bg-gray-100 rounded">
-                    {item.image && (
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover rounded"
-                      />
-                    )}
-                  </div>
-
-                  <div className="flex-1">
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
-                  </div>
-
-                  <p className="font-semibold">
-                    ৳{(item.price * item.quantity).toFixed(2)}
-                  </p>
+          <div key={order.id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            {/* Order Header */}
+            <div
+              className="p-5 cursor-pointer hover:bg-gray-50 transition flex flex-wrap justify-between items-center gap-4"
+              onClick={() => toggleExpand(order.id)}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="font-semibold text-gray-900">
+                    Order #{order.id.slice(-8)}
+                  </span>
+                  <span className={`badge ${statusColors[order.status]} gap-1`}>
+                    {statusLabels[order.status]}
+                  </span>
                 </div>
-              ))}
+                <p className="text-sm text-gray-500 mt-1">
+                  Placed on {new Date(order.createdAt).toLocaleDateString()} at{" "}
+                  {new Date(order.createdAt).toLocaleTimeString()}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-6">
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Total Amount</p>
+                  <p className="font-bold text-primary">৳{order.total.toFixed(2)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Items</p>
+                  <p className="font-semibold">{order.items.length}</p>
+                </div>
+                {expandedOrder === order.id ? (
+                  <ChevronUp className="w-5 h-5 text-gray-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-400" />
+                )}
+              </div>
             </div>
 
-            {/* Footer */}
-            <div className="border-t mt-6 pt-4 flex justify-between items-center">
-              <span className="font-semibold text-lg">Total</span>
-              <span className="font-bold text-lg text-blue-600">
-                ৳{order.total.toFixed(2)}
-              </span>
-            </div>
+            {/* Order Details (Expandable) */}
+            {expandedOrder === order.id && (
+              <div className="border-t bg-gray-50 p-5 space-y-4">
+                <h3 className="font-semibold text-gray-700">Order Items</h3>
+                <div className="space-y-3">
+                  {order.items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-4 bg-white rounded-lg p-3">
+                      <div className="w-16 h-16 relative bg-gray-100 rounded-lg overflow-hidden">
+                        {item.medicine.image ? (
+                          <Image
+                            src={item.medicine.image}
+                            alt={item.medicine.name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                            No image
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex-1">
+                        <p className="font-medium">{item.medicine.name}</p>
+                        <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                      </div>
+
+                      <p className="font-semibold">
+                        ৳{(item.price * item.quantity).toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="border-t pt-4 mt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Order Total</span>
+                    <span className="text-xl font-bold text-primary">
+                      ৳{order.total.toFixed(2)}
+                    </span>
+                  </div>
+                  {order.status === "PENDING" && (
+                    <p className="text-sm text-amber-600 mt-2">
+                      Your order is being processed. You will receive updates shortly.
+                    </p>
+                  )}
+                  {order.status === "COMPLETED" && (
+                    <p className="text-sm text-green-600 mt-2">
+                      Your order has been delivered. Thank you for shopping with us!
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
     </div>
   );
-};
-
-export default Orders;
+}

@@ -1,140 +1,154 @@
+// src/app/(dashboardLayout)/seller/@content/dashboard/page.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { ShoppingCart, Package } from "lucide-react";
-import { fetchMedicines } from "@/services/medicine.service";
-import { fetchSellerOrders } from "@/services/orders.service";
+import { ShoppingCart, Package, TrendingUp, Star, AlertCircle } from "lucide-react";
+import { useSellerDashboard } from "@/hooks/useSellerDashboard";
 
-interface Medicine {
-  id: string;
-  name: string;
-  stock: number;
-}
+export default function SellerDashboard() {
+  const { data: stats, isLoading, isError } = useSellerDashboard();
 
-interface Order {
-  id: string;
-  customerName: string;
-  medicineName: string;
-  quantity: number;
-  status: string;
-}
-
-const SellerDashboard = () => {
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const medData = await fetchMedicines();
-        setMedicines(medData);
-
-        const orderData = await fetchSellerOrders();
-        setOrders(orderData);
-      } catch (err) {
-        console.error("Failed to fetch data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary bg-blue-400"></span>
-        Loading....
+        <div className="text-center">
+          <div className="loading loading-spinner loading-lg text-primary mb-4"></div>
+          <p className="text-gray-500">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
 
+  if (isError || !stats) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center text-red-500">
+          <AlertCircle className="w-12 h-12 mx-auto mb-3" />
+          <p>Failed to load dashboard data</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="btn btn-sm btn-primary mt-3"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const { overview, charts, recent } = stats;
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row pt-10">
-      {/* Main content */}
-      <main className="flex-1 p-4 md:p-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center mb-8 w-full">
-          <h1 className="text-2xl font-bold text-blue-600">Welcome, Seller!</h1>
-
-          <Link href="/seller/add-medicine">
-            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full sm:w-auto">
-              Add Medicine
-            </button>
-          </Link>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-blue-600">Seller Dashboard</h1>
+          <p className="text-gray-500 mt-1">Welcome back! Here&apos;s your store performance</p>
         </div>
 
-        {/* Stats cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 mb-8 w-full">
-          <div className="bg-white shadow rounded p-6 flex flex-col items-center">
-            <Package className="w-10 h-10 text-blue-500 mb-2" />
-            <p className="text-gray-500">Total Medicines</p>
-            <p className="text-xl font-bold">{medicines.length}</p>
-          </div>
+        <Link href="/seller/add-medicine">
+          <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition w-full sm:w-auto">
+            + Add New Medicine
+          </button>
+        </Link>
+      </div>
 
-          <div className="bg-white shadow rounded p-6 flex flex-col items-center">
-            <ShoppingCart className="w-10 h-10 text-green-500 mb-2" />
-            <p className="text-gray-500">Incoming Orders</p>
-            <p className="text-xl font-bold">{orders.length}</p>
-          </div>
-        </div>
-
-        {/* Recent Orders Table */}
-        <div className="bg-white shadow rounded p-4 md:p-6">
-          <h2 className="text-lg font-semibold mb-4">Recent Orders</h2>
-
-          {orders.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">
-              No incoming orders yet.
-            </p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="table table-zebra w-full">
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Medicine</th>
-                    <th>Quantity</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {orders.map((order) => (
-                    <tr key={order.id}>
-                      <td>{order.id}</td>
-                      <td>{order.customerName}</td>
-                      <td>{order.medicineName}</td>
-                      <td>{order.quantity}</td>
-                      <td>
-                        <span
-                          className={`badge gap-1 ${
-                            order.status === "Pending"
-                              ? "badge-warning"
-                              : "badge-success"
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-white shadow rounded-xl p-5 border-l-4 border-blue-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm">Total Revenue</p>
+              <p className="text-2xl font-bold">৳{overview.totalRevenue.toLocaleString()}</p>
             </div>
-          )}
-
-          <p className="mt-3 text-xs text-gray-500 text-center md:hidden">
-            Scroll horizontally to see all columns →
-          </p>
+            <TrendingUp className="w-8 h-8 text-blue-500" />
+          </div>
         </div>
-      </main>
+
+        <div className="bg-white shadow rounded-xl p-5 border-l-4 border-green-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm">Total Orders</p>
+              <p className="text-2xl font-bold">{overview.totalOrders}</p>
+            </div>
+            <ShoppingCart className="w-8 h-8 text-green-500" />
+          </div>
+        </div>
+
+        <div className="bg-white shadow rounded-xl p-5 border-l-4 border-purple-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm">Total Products</p>
+              <p className="text-2xl font-bold">{overview.totalProducts}</p>
+            </div>
+            <Package className="w-8 h-8 text-purple-500" />
+          </div>
+        </div>
+
+        <div className="bg-white shadow rounded-xl p-5 border-l-4 border-yellow-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 text-sm">Avg Rating</p>
+              <p className="text-2xl font-bold">{overview.averageRating || 0}</p>
+            </div>
+            <Star className="w-8 h-8 text-yellow-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* Top Products Table */}
+      {charts.topProducts.length > 0 && (
+        <div className="bg-white shadow rounded-xl p-5">
+          <h2 className="text-lg font-semibold mb-4">Top Selling Products</h2>
+          <div className="overflow-x-auto">
+            <table className="table table-zebra w-full">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Sold</th>
+                  <th>Revenue</th>
+                  <th>Rating</th>
+                </tr>
+              </thead>
+              <tbody>
+                {charts.topProducts.slice(0, 5).map((product) => (
+                  <tr key={product.id}>
+                    <td className="font-medium">{product.name}</td>
+                    <td>{product.sold} units</td>
+                    <td>৳{product.revenue.toLocaleString()}</td>
+                    <td>
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span>{product.rating.toFixed(1)}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Low Stock Alert */}
+      {recent.lowStockProducts.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5">
+          <h2 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center gap-2">
+            <AlertCircle className="w-5 h-5" />
+            Low Stock Alert
+          </h2>
+          <div className="space-y-2">
+            {recent.lowStockProducts.map((product) => (
+              <div key={product.id} className="flex justify-between items-center">
+                <span>{product.name}</span>
+                <span className="font-semibold text-red-600">Only {product.stock} left</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default SellerDashboard;
+}
