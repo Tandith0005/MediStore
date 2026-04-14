@@ -40,7 +40,7 @@ export default function SellerOrders() {
       </div>
     );
   }
-
+  
   if (!orders || orders.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-gray-500">

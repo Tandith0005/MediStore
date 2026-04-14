@@ -68,25 +68,25 @@ export interface Medicine {
 // Get seller dashboard stats
 export const getSellerDashboardStats = async () => {
   const response = await api.get<SellerDashboardStats>("/dashboard/seller");
-  return response.data;
+  return response.data.data || response.data;
 };
 
 // Get seller orders
 export const getSellerOrders = async () => {
   const response = await api.get<Order[]>("/orders/seller");
-  return response.data;
+  return response.data.data || response.data;
 };
 
 // Update order status
 export const updateOrderStatus = async (orderId: string, status: string) => {
   const response = await api.patch("/orders/status", { orderId, status });
-  return response.data;
+  return response.data.data || response.data;
 };
 
 // Get seller's medicines
 export const getSellerMedicines = async () => {
   const response = await api.get<Medicine[]>("/medicine/my");
-  return response.data;
+  return response.data.data || response.data;
 };
 
 // Delete medicine
@@ -99,5 +99,5 @@ export const createSellerMedicine = async (data: FormData) => {
   const response = await api.post("/medicine", data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-  return response.data;
+  return response.data.data || response.data;
 };

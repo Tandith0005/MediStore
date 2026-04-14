@@ -1,29 +1,58 @@
-// src/app/(dashboardLayout)/user/@content/profile/page.tsx
 "use client";
 
 import React, { useState } from "react";
-import { useUserProfile, useUpdateUserProfile, useDeleteUserAccount } from "@/hooks/useUserDashboard";
-import { User, Mail, Shield, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  User,
+  Mail,
+  Shield,
+  Phone,
+  MapPin,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
+import { useDeleteUserAccount, useUpdateUserProfile, useUserProfile } from "@/hooks/useProfile";
+import { UserProfile } from "@/services/profile.service";
+
+
 
 export default function ProfilePage() {
   const { data: profile, isLoading, isError } = useUserProfile();
   const updateProfileMutation = useUpdateUserProfile();
   const deleteAccountMutation = useDeleteUserAccount();
-  const [name, setName] = useState("");
+
+  const [formData, setFormData] = useState<Pick<UserProfile, "name" | "phone" | "address">>({
+    name: null,
+    phone: null,
+    address: null,
+  });
 
   React.useEffect(() => {
-    if (profile) setName(profile.name || "");
+    if (profile) {
+      setFormData({
+        name: profile.name,
+        phone: profile.phone ?? null,
+        address: profile.address ?? null,
+      });
+    }
   }, [profile]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim() && name !== profile?.name) {
-      await updateProfileMutation.mutateAsync({ name });
-    }
+    await updateProfileMutation.mutateAsync({
+      name: formData.name ?? "",
+      phone: formData.phone ?? undefined,
+      address: formData.address ?? undefined,
+    });
   };
 
   const handleDeleteAccount = async () => {
-    const confirmed = confirm("Are you sure? This action is permanent and cannot be undone.");
+    const confirmed = confirm(
+      "Are you sure? This action is permanent and cannot be undone."
+    );
     if (confirmed) {
       await deleteAccountMutation.mutateAsync();
     }
@@ -60,9 +89,10 @@ export default function ProfilePage() {
           </div>
           <div>
             <p className="text-sm text-gray-500">Full Name</p>
-            <p className="font-semibold">{profile.name || "Not provided"}</p>
+            <p className="font-semibold">{profile.name ?? "Not provided"}</p>
           </div>
         </div>
+
         <div className="p-5 flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
             <Mail className="w-6 h-6 text-green-600" />
@@ -72,15 +102,40 @@ export default function ProfilePage() {
             <p className="font-semibold">{profile.email}</p>
           </div>
         </div>
+
         <div className="p-5 flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
             <Shield className="w-6 h-6 text-purple-600" />
           </div>
           <div>
             <p className="text-sm text-gray-500">Account Type</p>
-            <p className="font-semibold">{profile.role}</p>
+            <p className="font-semibold capitalize">{profile.role}</p>
           </div>
         </div>
+
+        {profile.phone && (
+          <div className="p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
+              <Phone className="w-6 h-6 text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Phone</p>
+              <p className="font-semibold">{profile.phone}</p>
+            </div>
+          </div>
+        )}
+
+        {profile.address && (
+          <div className="p-5 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+              <MapPin className="w-6 h-6 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Address</p>
+              <p className="font-semibold">{profile.address}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Edit Profile Form */}
@@ -91,14 +146,48 @@ export default function ProfilePage() {
             <label className="label-text">Full Name</label>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              name="name"
+              value={formData.name ?? ""}
+              onChange={handleChange}
               className="input input-bordered w-full mt-1"
               placeholder="Enter your name"
             />
           </div>
-          <button type="submit" disabled={updateProfileMutation.isPending} className="btn btn-primary">
-            {updateProfileMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Changes"}
+
+          <div>
+            <label className="label-text">Phone</label>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone ?? ""}
+              onChange={handleChange}
+              className="input input-bordered w-full mt-1"
+              placeholder="Enter your phone number"
+            />
+          </div>
+
+          <div>
+            <label className="label-text">Address</label>
+            <input
+              type="text"
+              name="address"
+              value={formData.address ?? ""}
+              onChange={handleChange}
+              className="input input-bordered w-full mt-1"
+              placeholder="Enter your address"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={updateProfileMutation.isPending}
+            className="btn btn-primary"
+          >
+            {updateProfileMutation.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              "Save Changes"
+            )}
           </button>
         </form>
       </div>
@@ -109,9 +198,19 @@ export default function ProfilePage() {
           <AlertTriangle className="w-5 h-5" />
           <h2 className="text-lg font-semibold">Danger Zone</h2>
         </div>
-        <p className="text-sm text-red-600 mb-4">Deleting your account is permanent and cannot be undone.</p>
-        <button onClick={handleDeleteAccount} disabled={deleteAccountMutation.isPending} className="btn btn-error">
-          {deleteAccountMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete Account"}
+        <p className="text-sm text-red-600 mb-4">
+          Deleting your account is permanent and cannot be undone.
+        </p>
+        <button
+          onClick={handleDeleteAccount}
+          disabled={deleteAccountMutation.isPending}
+          className="btn btn-error"
+        >
+          {deleteAccountMutation.isPending ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            "Delete Account"
+          )}
         </button>
       </div>
     </div>

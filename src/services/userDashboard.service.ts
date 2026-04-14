@@ -1,17 +1,6 @@
 // src/services/userDashboard.service.ts
 import api from "@/lib/axios";
 
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  emailVerified: boolean;
-  isDeleted: boolean;
-  image?: string;
-  createdAt: string;
-}
-
 
 export interface Order {
   id: string;
@@ -45,23 +34,6 @@ export interface DashboardStats {
   };
   recentOrders: Order[];
 }
-
-// Get user profile
-export const getUserProfile = async () => {
-  const response = await api.get<UserProfile>("/user/profile");
-  return response.data;
-};
-
-// Update user profile
-export const updateUserProfile = async (data: { name: string }) => {
-  const response = await api.patch<UserProfile>("/user/me", data);
-  return response.data;
-};
-
-// Delete user account
-export const deleteUserAccount = async () => {
-  await api.delete("/user/me");
-};
 
 // Get user dashboard stats
 export const getUserDashboardStats = async () => {

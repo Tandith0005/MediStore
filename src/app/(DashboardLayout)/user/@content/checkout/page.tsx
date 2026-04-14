@@ -38,11 +38,10 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Pass the order data to the mutation
     await createOrderMutation.mutateAsync();
   };
 
-  // Extract items from cartData (which is an object with items and summary)
+  // Get cart items and summary
   const cartItems = cartData?.items || [];
   const cartSummary = cartData?.summary;
 

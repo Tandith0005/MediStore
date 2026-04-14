@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMedicineReviews, useCreateReview, useDeleteReview } from "@/hooks/useReviews";
 import { useSession } from "@/hooks/useAuth";
-import { Star, Trash2, Loader2 } from "lucide-react";
+import { Star, Trash2, Loader2, User } from "lucide-react";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "react-toastify";
@@ -12,6 +12,42 @@ import Link from "next/link";
 interface ProductReviewsProps {
   medicineId: string;
 }
+
+const isValidImageUrl = (url: string | null | undefined): boolean => {
+  if (!url) return false;
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return url.startsWith('/') || /\.(jpg|jpeg|png|webp|avif|gif|svg)$/i.test(url);
+  }
+};
+
+const UserAvatar = ({ name, image }: { name: string | null; image?: string | null }) => {
+  const [imgError, setImgError] = useState(false);
+  const isValidImage = image && isValidImageUrl(image) && !imgError;
+  const initial = name?.charAt(0).toUpperCase() || "U";
+
+  if (isValidImage) {
+    return (
+      <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+        <Image
+          src={image}
+          alt={name || "User"}
+          fill
+          className="object-cover"
+          onError={() => setImgError(true)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+      {initial}
+    </div>
+  );
+};
 
 export default function ProductReviews({ medicineId }: ProductReviewsProps) {
   const [page, setPage] = useState(1);
@@ -33,7 +69,6 @@ export default function ProductReviews({ medicineId }: ProductReviewsProps) {
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Early validation - prevent any submission if conditions not met
     if (!user) {
       toast.error("Please login to submit a review");
       return;
@@ -58,8 +93,8 @@ export default function ProductReviews({ medicineId }: ProductReviewsProps) {
       });
       setRating(5);
       setComment("");
+      toast.success("Review submitted successfully!");
     } catch (error) {
-      // Error is already handled in the mutation hook
       console.error("Review submission failed:", error);
     }
   };
@@ -67,6 +102,7 @@ export default function ProductReviews({ medicineId }: ProductReviewsProps) {
   const handleDeleteReview = async (reviewId: string) => {
     if (confirm("Are you sure you want to delete this review?")) {
       await deleteReviewMutation.mutateAsync(reviewId);
+      toast.success("Review deleted successfully!");
     }
   };
 
@@ -210,24 +246,8 @@ export default function ProductReviews({ medicineId }: ProductReviewsProps) {
             <div key={review.id} className="border rounded-lg p-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
-                  {/* Avatar */}
-                  <div className="avatar placeholder">
-                    <div className="bg-neutral text-neutral-content rounded-full w-10 flex items-center justify-center">
-                      {review.user.image ? (
-                        <Image
-                          src={review.user.image}
-                          alt={review.user.name}
-                          width={40}
-                          height={40}
-                          className="rounded-full"
-                        />
-                      ) : (
-                        <span className="text-lg">
-                          {review.user.name?.charAt(0).toUpperCase() || "U"}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  {/* Avatar with fallback */}
+                  <UserAvatar name={review.user.name} image={review.user.image} />
 
                   <div>
                     {/* User Name & Date */}
@@ -266,7 +286,7 @@ export default function ProductReviews({ medicineId }: ProductReviewsProps) {
                     className="text-red-500 hover:text-red-700 transition"
                     disabled={deleteReviewMutation.isPending}
                   >
-                    {deleteReviewMutation.isPending ? (
+                    {deleteReviewMutation.isPending && deleteReviewMutation.variables === review.id ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <Trash2 className="w-4 h-4" />

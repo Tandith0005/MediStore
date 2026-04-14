@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Package, ChevronDown, ChevronUp, Loader2, AlertCircle } from "lucide-react";
 import { useUserOrders } from "@/hooks/useUserDashboard";
+import { Order } from "@/services/userDashboard.service";
 
 const statusColors: Record<string, string> = {
   PENDING: "badge-warning",
