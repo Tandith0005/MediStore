@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://medi-store-server-tau.vercel.app/api/$1"
+    }
+  ]
+}
