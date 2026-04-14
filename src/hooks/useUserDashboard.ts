@@ -5,9 +5,6 @@ import {
   updateUserProfile,
   deleteUserAccount,
   getUserDashboardStats,
-  getUserCart,
-  updateCartItemQuantity,
-  removeCartItem,
   getUserOrders,
   createOrder,
 } from "@/services/userDashboard.service";
@@ -65,53 +62,16 @@ export const useUserDashboardStats = () => {
   });
 };
 
-// Cart
-export const useUserCart = () => {
-  return useQuery({
-    queryKey: ["user-cart"],
-    queryFn: async () => {
-      const response = await getUserCart();
-      return response;
-    },
-    staleTime: 1 * 60 * 1000,
-  });
-};
 
-export const useUpdateCartQuantity = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ medicineId, action }: { medicineId: string; action: "increment" | "decrement" }) =>
-      updateCartItemQuantity(medicineId, action),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-cart"] });
-    },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to update cart");
-    },
-  });
-};
-
-export const useRemoveCartItem = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (cartItemId: string) => removeCartItem(cartItemId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-cart"] });
-      toast.success("Item removed from cart");
-    },
-    onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to remove item");
-    },
-  });
-};
 
 // Orders
 export const useUserOrders = () => {
   return useQuery({
     queryKey: ["user-orders"],
-    queryFn: () => getUserOrders(),
+    queryFn: async () => {
+      const response = await getUserOrders();
+      return response;
+    },
     staleTime: 2 * 60 * 1000,
   });
 };

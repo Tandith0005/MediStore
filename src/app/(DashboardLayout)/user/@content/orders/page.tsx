@@ -7,25 +7,35 @@ import Link from "next/link";
 import { Package, ChevronDown, ChevronUp, Loader2, AlertCircle } from "lucide-react";
 import { useUserOrders } from "@/hooks/useUserDashboard";
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   PENDING: "badge-warning",
   COMPLETED: "badge-success",
   CANCELLED: "badge-error",
 };
 
-const statusLabels = {
+const statusLabels: Record<string, string> = {
   PENDING: "Pending",
   COMPLETED: "Delivered",
   CANCELLED: "Cancelled",
 };
 
 export default function OrdersPage() {
-  const { data: orders, isLoading, isError, refetch } = useUserOrders();
+  const { data: ordersData, isLoading, isError, refetch } = useUserOrders();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
   const toggleExpand = (orderId: string) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
+
+  // Extract orders array from response
+  const orders = React.useMemo(() => {
+    if (!ordersData) return [];
+    if (Array.isArray(ordersData)) return ordersData;
+    if (ordersData && typeof ordersData === 'object' && 'data' in ordersData && Array.isArray(ordersData.data)) {
+      return ordersData.data;
+    }
+    return [];
+  }, [ordersData]);
 
   if (isLoading) {
     return (
@@ -73,7 +83,7 @@ export default function OrdersPage() {
       </div>
 
       <div className="space-y-4">
-        {orders.map((order) => (
+        {orders.map((order: Order) => (
           <div key={order.id} className="bg-white rounded-xl shadow-sm border overflow-hidden">
             {/* Order Header */}
             <div
@@ -85,8 +95,8 @@ export default function OrdersPage() {
                   <span className="font-semibold text-gray-900">
                     Order #{order.id.slice(-8)}
                   </span>
-                  <span className={`badge ${statusColors[order.status]} gap-1`}>
-                    {statusLabels[order.status]}
+                  <span className={`badge ${statusColors[order.status] || "badge-info"} gap-1`}>
+                    {statusLabels[order.status] || order.status}
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
@@ -102,7 +112,7 @@ export default function OrdersPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-500">Items</p>
-                  <p className="font-semibold">{order.items.length}</p>
+                  <p className="font-semibold">{order.items?.length || 0}</p>
                 </div>
                 {expandedOrder === order.id ? (
                   <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -117,13 +127,13 @@ export default function OrdersPage() {
               <div className="border-t bg-gray-50 p-5 space-y-4">
                 <h3 className="font-semibold text-gray-700">Order Items</h3>
                 <div className="space-y-3">
-                  {order.items.map((item) => (
+                  {(order.items || []).map((item) => (
                     <div key={item.id} className="flex items-center gap-4 bg-white rounded-lg p-3">
                       <div className="w-16 h-16 relative bg-gray-100 rounded-lg overflow-hidden">
-                        {item.medicine.image ? (
+                        {item.medicine?.image ? (
                           <Image
                             src={item.medicine.image}
-                            alt={item.medicine.name}
+                            alt={item.medicine.name || "Product"}
                             fill
                             className="object-cover"
                           />
@@ -135,12 +145,12 @@ export default function OrdersPage() {
                       </div>
 
                       <div className="flex-1">
-                        <p className="font-medium">{item.medicine.name}</p>
+                        <p className="font-medium">{item.medicine?.name || "Unknown Product"}</p>
                         <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                       </div>
 
                       <p className="font-semibold">
-                        ৳{(item.price * item.quantity).toFixed(2)}
+                        ৳{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
                       </p>
                     </div>
                   ))}

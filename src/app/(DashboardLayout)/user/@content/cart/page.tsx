@@ -3,25 +3,28 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Trash2, Plus, Minus, ArrowRight, ShoppingCart, Loader2 } from "lucide-react";
-import { useUserCart, useUpdateCartQuantity, useRemoveCartItem } from "@/hooks/useUserDashboard";
+import { useCart, useAddToCart, useRemoveFromCart, useDecreaseCartQuantity } from "@/hooks/useCart";
+import { CartItem } from "@/services/cart.service";
+
 
 export default function CartPage() {
-  const { data: cartItems, isLoading, isError, refetch } = useUserCart();
-  const updateQuantityMutation = useUpdateCartQuantity();
-  const removeItemMutation = useRemoveCartItem();
+  const { data: cartData, isLoading, isError, refetch } = useCart();
+  const addToCartMutation = useAddToCart();
+  const removeFromCartMutation = useRemoveFromCart();
+  const decreaseCartQuantityMutation = useDecreaseCartQuantity();
 
   const handleIncrement = (medicineId: string) => {
-    updateQuantityMutation.mutate({ medicineId, action: "increment" });
+    addToCartMutation.mutate(medicineId);
   };
 
   const handleDecrement = (medicineId: string, currentQuantity: number) => {
     if (currentQuantity > 1) {
-      updateQuantityMutation.mutate({ medicineId, action: "decrement" });
+      decreaseCartQuantityMutation.mutate(medicineId);
     }
   };
 
   const handleRemove = (cartItemId: string) => {
-    removeItemMutation.mutate(cartItemId);
+    removeFromCartMutation.mutate(cartItemId);
   };
 
   if (isLoading) {
@@ -48,7 +51,10 @@ export default function CartPage() {
     );
   }
 
-  if (!cartItems || cartItems.length === 0) {
+  // console.log('cartData', cartData.summary);
+  const items = cartData?.items || [];
+  // console.log('items', items);
+  if (items.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center">
         <ShoppingCart className="w-20 h-20 text-gray-300 mb-4" />
@@ -61,25 +67,26 @@ export default function CartPage() {
     );
   }
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.medicine.price * item.quantity, 0);
-  const shipping = subtotal > 500 ? 0 : 60;
-  const total = subtotal + shipping;
+  // Use the summary from backend or calculate it
+  const subtotal = cartData?.summary?.subtotal || items.reduce((sum : number, item: CartItem) => sum + (item.medicine?.price || 0) * (item.quantity || 0), 0);
+  const shipping = cartData?.summary?.shippingFee || (subtotal > 500 ? 0 : 60);
+  const total = cartData?.summary?.total || (subtotal + shipping);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-blue-600">My Cart</h1>
-        <p className="text-gray-500 mt-1">{cartItems.length} items</p>
+        <p className="text-gray-500 mt-1">{cartData?.summary?.totalItems || items.length} items</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
-          {cartItems.map((item) => (
+          {items.map((item: CartItem) => (
             <div key={item.id} className="bg-white rounded-xl shadow-sm border p-5 flex flex-col sm:flex-row gap-5">
               {/* Image */}
               <div className="w-full sm:w-32 h-32 relative bg-gray-100 rounded-lg overflow-hidden">
-                {item.medicine.image ? (
+                {item.medicine?.image ? (
                   <Image src={item.medicine.image} alt={item.medicine.name} fill className="object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">No image</div>
@@ -90,23 +97,31 @@ export default function CartPage() {
               <div className="flex-1">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-semibold text-lg">{item.medicine.name}</h3>
+                    <h3 className="font-semibold text-lg">{item.medicine?.name || "Unknown Product"}</h3>
                     <div className="flex gap-2 mt-1">
-                      <span className="badge badge-sm">{item.medicine.category}</span>
-                      <span className="badge badge-sm">{item.medicine.manufacturer}</span>
+                      <span className="badge badge-sm">{item.medicine?.category || "Uncategorized"}</span>
+                      <span className="badge badge-sm">{item.medicine?.manufacturer || "Unknown"}</span>
                     </div>
                   </div>
-                  <button onClick={() => handleRemove(item.id)} className="text-red-500 hover:text-red-700">
-                    <Trash2 className="w-5 h-5" />
+                  <button 
+                    onClick={() => handleRemove(item.id)} 
+                    className="text-red-500 hover:text-red-700"
+                    disabled={removeFromCartMutation.isPending}
+                  >
+                    {removeFromCartMutation.isPending && removeFromCartMutation.variables === item.id ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
 
                 <div className="flex justify-between items-center mt-4">
-                  <span className="text-xl font-bold text-primary">৳{item.medicine.price}</span>
+                  <span className="text-xl font-bold text-primary">৳{item.medicine?.price || 0}</span>
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => handleDecrement(item.medicineId, item.quantity)}
-                      disabled={item.quantity <= 1}
+                      disabled={item.quantity <= 1 || decreaseCartQuantityMutation.isPending}
                       className="btn btn-sm btn-outline rounded-full"
                     >
                       <Minus className="w-4 h-4" />
@@ -114,9 +129,14 @@ export default function CartPage() {
                     <span className="font-semibold w-8 text-center">{item.quantity}</span>
                     <button
                       onClick={() => handleIncrement(item.medicineId)}
+                      disabled={addToCartMutation.isPending}
                       className="btn btn-sm btn-outline rounded-full"
                     >
-                      <Plus className="w-4 h-4" />
+                      {addToCartMutation.isPending && addToCartMutation.variables === item.medicineId ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Plus className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </div>

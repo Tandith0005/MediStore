@@ -1,36 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/app/(dashboardLayout)/user/@content/dashboard/page.tsx
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { ShoppingCart, PackageCheck, Star, AlertCircle, Loader2 } from "lucide-react";
-import { useUserDashboardStats, useUserCart } from "@/hooks/useUserDashboard";
+import { useUserDashboardStats} from "@/hooks/useUserDashboard";
+import { useCart } from "@/hooks/useCart";
 
 export default function UserDashboard() {
   const { data: stats, isLoading: statsLoading, isError: statsError } = useUserDashboardStats();
-  const { data: cartData, isLoading: cartLoading } = useUserCart();
+  const { data: cartData, isLoading: cartLoading } = useCart();
 
-  console.log("Cart Data:", cartData);
-console.log("Stats Data:", stats);
-
-  // Safely extract cart items and count
-  const cartItemCount = React.useMemo(() => {
-    if (!cartData) return 0;
-    // If cartData is an array (items)
-    if (Array.isArray(cartData)) {
-      return cartData.reduce((sum, item) => sum + (item.quantity || 0), 0);
-    }
-    // If cartData has items property
-    if (cartData && typeof cartData === 'object' && 'items' in cartData) {
-      return (cartData as any).items?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0;
-    }
-    // If cartData has summary property
-    if (cartData && typeof cartData === 'object' && 'summary' in cartData) {
-      return (cartData as any).summary?.totalItems || 0;
-    }
-    return 0;
-  }, [cartData]);
+  const cartItemCount = cartData?.summary?.totalItems || 0;
 
   // Safely extract stats overview
   const overview = stats?.overview || {

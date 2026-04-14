@@ -5,12 +5,14 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useUserCart, useCreateOrder } from "@/hooks/useUserDashboard";
+import { useCreateOrder } from "@/hooks/useUserDashboard";
 import { Truck, Shield, Clock, MapPin, CreditCard, Loader2, AlertCircle } from "lucide-react";
+import { useCart } from "@/hooks/useCart";
+import { CartItem } from "@/services/cart.service";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { data: cartItems, isLoading: cartLoading, isError: cartError } = useUserCart();
+  const { data: cartData, isLoading: cartLoading, isError: cartError } = useCart();
   const createOrderMutation = useCreateOrder();
 
   const [formData, setFormData] = useState({
@@ -31,14 +33,26 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate form
     if (!formData.name || !formData.phone || !formData.address || !formData.city) {
       alert("Please fill in all required fields");
       return;
     }
 
+    // Pass the order data to the mutation
     await createOrderMutation.mutateAsync();
   };
+
+  // Extract items from cartData (which is an object with items and summary)
+  const cartItems = cartData?.items || [];
+  const cartSummary = cartData?.summary;
+
+  // Calculate totals using the summary from backend or fallback to calculation
+  const subtotal = cartSummary?.subtotal ?? cartItems.reduce(
+    (sum: number, item: CartItem) => sum + (item.medicine?.price || 0) * (item.quantity || 0), 
+    0
+  );
+  const shipping = cartSummary?.shippingFee ?? (subtotal > 500 ? 0 : 60);
+  const total = cartSummary?.total ?? (subtotal + shipping);
 
   if (cartLoading) {
     return (
@@ -65,7 +79,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!cartItems || cartItems.length === 0) {
+  if (cartItems.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center">
         <div className="text-gray-400 mb-4">
@@ -81,10 +95,6 @@ export default function CheckoutPage() {
       </div>
     );
   }
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.medicine.price * item.quantity, 0);
-  const shipping = subtotal > 500 ? 0 : 60;
-  const total = subtotal + shipping;
 
   return (
     <div className="space-y-6">
@@ -169,6 +179,21 @@ export default function CheckoutPage() {
                   />
                 </div>
               </div>
+
+              <button
+                type="submit"
+                disabled={createOrderMutation.isPending}
+                className="btn btn-primary w-full mt-4 gap-2 lg:hidden"
+              >
+                {createOrderMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Placing Order...
+                  </>
+                ) : (
+                  "Place Order"
+                )}
+              </button>
             </form>
           </div>
 
@@ -205,10 +230,10 @@ export default function CheckoutPage() {
             <h2 className="text-xl font-semibold mb-5">Order Summary</h2>
 
             <div className="space-y-3 max-h-80 overflow-y-auto mb-4">
-              {cartItems.map((item) => (
+              {cartItems.map((item: CartItem) => (
                 <div key={item.id} className="flex gap-3">
                   <div className="w-12 h-12 relative bg-gray-100 rounded flex-shrink-0 overflow-hidden">
-                    {item.medicine.image && (
+                    {item.medicine?.image && (
                       <Image
                         src={item.medicine.image}
                         alt={item.medicine.name}
@@ -218,10 +243,10 @@ export default function CheckoutPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{item.medicine.name}</p>
+                    <p className="font-medium text-sm truncate">{item.medicine?.name || "Unknown"}</p>
                     <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                   </div>
-                  <p className="font-semibold text-sm">৳{(item.medicine.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-semibold text-sm">৳{((item.medicine?.price || 0) * (item.quantity || 0)).toFixed(2)}</p>
                 </div>
               ))}
             </div>
@@ -249,7 +274,7 @@ export default function CheckoutPage() {
             <button
               onClick={handleSubmit}
               disabled={createOrderMutation.isPending}
-              className="btn btn-primary w-full mt-6 gap-2"
+              className="btn btn-primary w-full mt-6 gap-2 hidden lg:flex"
             >
               {createOrderMutation.isPending ? (
                 <>

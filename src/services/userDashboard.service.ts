@@ -1,3 +1,4 @@
+// src/services/userDashboard.service.ts
 import api from "@/lib/axios";
 
 export interface UserProfile {
@@ -11,21 +12,6 @@ export interface UserProfile {
   createdAt: string;
 }
 
-export interface CartItem {
-  id: string;
-  userId: string;
-  medicineId: string;
-  quantity: number;
-  medicine: {
-    id: string;
-    name: string;
-    price: number;
-    image?: string;
-    category: string;
-    manufacturer: string;
-    stock: number;
-  };
-}
 
 export interface Order {
   id: string;
@@ -79,48 +65,29 @@ export const deleteUserAccount = async () => {
 
 // Get user dashboard stats
 export const getUserDashboardStats = async () => {
-  const response = await api.get<DashboardStats>("/dashboard/customer");
-  return response.data;
+  const response = await api.get("/dashboard/customer");
+  // console.log(response.data.data);
+  return response.data?.data;
 };
 
-// Get user cart
-export const getUserCart = async () => {
-  const response = await api.get("/cart");
-  
-  if (response.data && typeof response.data === 'object') {
-    if ('items' in response.data && Array.isArray(response.data.items)) {
-      return response.data.items;
-    }
-    if (Array.isArray(response.data)) {
-      return response.data;
-    }
-    if ('data' in response.data && Array.isArray(response.data.data)) {
-      return response.data.data;
-    }
+
+
+// Get user orders - FIXED to return array
+export const getUserOrders = async (): Promise<Order[]> => {
+  const response = await api.get("/orders");
+  // Backend returns { data: [], meta: {} }
+  if (
+    response.data &&
+    response.data.data &&
+    Array.isArray(response.data.data)
+  ) {
+    return response.data.data;
+  }
+  // If response is directly an array
+  if (Array.isArray(response.data)) {
+    return response.data;
   }
   return [];
-};
-
-// Update cart item quantity
-export const updateCartItemQuantity = async (medicineId: string, action: "increment" | "decrement") => {
-  if (action === "increment") {
-    const response = await api.patch(`/cart/${medicineId}`);
-    return response.data;
-  } else {
-    const response = await api.patch(`/cart/minus/${medicineId}`);
-    return response.data;
-  }
-};
-
-// Remove cart item
-export const removeCartItem = async (cartItemId: string) => {
-  await api.delete(`/cart/${cartItemId}`);
-};
-
-// Get user orders
-export const getUserOrders = async () => {
-  const response = await api.get<Order[]>("/orders");
-  return response.data;
 };
 
 // Create order
