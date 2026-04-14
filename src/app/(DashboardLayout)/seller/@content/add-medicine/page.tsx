@@ -1,9 +1,10 @@
 // src/app/(dashboardLayout)/seller/@content/add-medicine/page.tsx
 "use client";
 
-import { categories, manufacturers } from "@/constants";
+import { manufacturers } from "@/constants";
 import uploadToImgbb from "@/services/uploadImg.service";
 import { useCreateSellerMedicine } from "@/hooks/useSellerDashboard";
+import { useCategories } from "@/hooks/useCategories";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
@@ -12,14 +13,17 @@ import { Loader2, Upload } from "lucide-react";
 const AddMedicine = () => {
   const router = useRouter();
   const createMutation = useCreateSellerMedicine();
+  const { data: categories, isLoading: categoriesLoading } = useCategories();
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
-    category: "",
+    categoryId: "", 
     manufacturer: "",
     image: null as File | null,
   });
+
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -47,6 +51,11 @@ const AddMedicine = () => {
       return;
     }
 
+    if (!formData.categoryId) {
+      toast.error("Please select a category");
+      return;
+    }
+
     try {
       // Upload image
       const imageUrl = await uploadToImgbb(formData.image);
@@ -56,7 +65,7 @@ const AddMedicine = () => {
       submitData.append("name", formData.name);
       submitData.append("description", formData.description);
       submitData.append("price", formData.price);
-      submitData.append("categoryId", formData.category);
+      submitData.append("categoryId", formData.categoryId); // Send categoryId
       submitData.append("manufacturer", formData.manufacturer);
       submitData.append("image", imageUrl);
 
@@ -66,7 +75,7 @@ const AddMedicine = () => {
         name: "",
         description: "",
         price: "",
-        category: "",
+        categoryId: "",
         manufacturer: "",
         image: null,
       });
@@ -76,6 +85,14 @@ const AddMedicine = () => {
       console.error(error);
     }
   };
+
+  if (categoriesLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -111,6 +128,7 @@ const AddMedicine = () => {
                 value={formData.price}
                 onChange={handleChange}
                 placeholder="0.00"
+                step="0.01"
                 className="input input-bordered w-full mt-1"
               />
             </div>
@@ -135,20 +153,18 @@ const AddMedicine = () => {
             <div>
               <label className="label-text font-medium">Category *</label>
               <select
-                name="category"
+                name="categoryId"
                 required
-                value={formData.category}
+                value={formData.categoryId}
                 onChange={handleChange}
                 className="select select-bordered w-full mt-1"
               >
                 <option value="">Select category</option>
-                {categories
-                  .filter((c) => c !== "All Medicines")
-                  .map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
+                {categories?.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
             </div>
 

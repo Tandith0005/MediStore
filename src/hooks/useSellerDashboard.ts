@@ -7,6 +7,7 @@ import {
   getSellerMedicines,
   deleteSellerMedicine,
   createSellerMedicine,
+  updateMedicineStock,
 } from "@/services/sellerDashboard.service";
 import { toast } from "react-toastify";
 
@@ -83,6 +84,23 @@ export const useCreateSellerMedicine = () => {
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Failed to add medicine");
+    },
+  });
+};
+
+// Update medicine stock mutation
+export const useUpdateMedicineStock = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, stock }: { id: string; stock: number }) =>
+      updateMedicineStock(id, stock),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["seller-medicines"] });
+      toast.success("Stock updated successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to update stock");
     },
   });
 };

@@ -101,3 +101,9 @@ export const createSellerMedicine = async (data: FormData) => {
   });
   return response.data.data || response.data;
 };
+
+// Update medicine stock - ADD THIS
+export const updateMedicineStock = async (id: string, stock: number) => {
+  const response = await api.patch(`/medicine/${id}`, { stock });
+  return response.data.data || response.data;
+};
