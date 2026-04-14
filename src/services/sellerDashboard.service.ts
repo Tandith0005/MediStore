@@ -66,14 +66,14 @@ export interface Medicine {
 }
 
 // Get seller dashboard stats
-export const getSellerDashboardStats = async () => {
-  const response = await api.get<SellerDashboardStats>("/dashboard/seller");
+export const getSellerDashboardStats = async (): Promise<SellerDashboardStats> => {
+  const response = await api.get("/dashboard/seller");
   return response.data.data || response.data;
 };
 
 // Get seller orders
-export const getSellerOrders = async () => {
-  const response = await api.get<Order[]>("/orders/seller");
+export const getSellerOrders = async (): Promise<Order[]> => {
+  const response = await api.get("/orders/seller");
   return response.data.data || response.data;
 };
 
@@ -84,8 +84,8 @@ export const updateOrderStatus = async (orderId: string, status: string) => {
 };
 
 // Get seller's medicines
-export const getSellerMedicines = async () => {
-  const response = await api.get<Medicine[]>("/medicine/my");
+export const getSellerMedicines = async (): Promise<Medicine[]> => {
+  const response = await api.get("/medicine/my");
   return response.data.data || response.data;
 };
 

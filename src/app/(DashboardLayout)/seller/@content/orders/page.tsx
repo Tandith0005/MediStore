@@ -4,6 +4,7 @@
 import React from "react";
 import { useSellerOrders, useUpdateOrderStatus } from "@/hooks/useSellerDashboard";
 import { AlertCircle, Package } from "lucide-react";
+import { Order } from "@/services/sellerDashboard.service";
 
 const statusColors = {
   PENDING: "badge-warning",
@@ -59,7 +60,7 @@ export default function SellerOrders() {
       </div>
 
       <div className="space-y-4">
-        {orders.map((order) => (
+        {orders.map((order : Order) => (
           <div key={order.id} className="bg-white shadow rounded-xl p-5 space-y-4">
             <div className="flex flex-wrap justify-between items-start gap-3">
               <div>

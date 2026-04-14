@@ -16,12 +16,12 @@ import {
 } from "@/hooks/useSellerDashboard";
 import Image from "next/image";
 import Link from "next/link";
+import { Medicine } from "@/services/sellerDashboard.service";
 
 export default function MyMedicines() {
   const { data: medicines = [], isLoading, isError } = useSellerMedicines();
   const deleteMutation = useDeleteSellerMedicine();
   const updateStockMutation = useUpdateMedicineStock();
-
   // Separate medicines into In Stock and Out of Stock
   const inStockMedicines = medicines.filter((product) => product.stock > 0);
   const outOfStockMedicines = medicines.filter((product) => product.stock <= 0);
@@ -145,7 +145,7 @@ export default function MyMedicines() {
 
 // Reusable Medicine Card Component
 interface MedicineCardProps {
-  product: any;
+  product: Medicine;
   onDelete: (id: string, name: string) => void;
   onStockChange: (id: string, currentStock: number, change: number) => void;
   isUpdating: boolean;

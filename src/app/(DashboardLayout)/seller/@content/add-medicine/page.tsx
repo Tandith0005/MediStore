@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { Loader2, Upload } from "lucide-react";
+import { Category } from "@/services/category.service";
 
 const AddMedicine = () => {
   const router = useRouter();
@@ -160,7 +161,7 @@ const AddMedicine = () => {
                 className="select select-bordered w-full mt-1"
               >
                 <option value="">Select category</option>
-                {categories?.map((category) => (
+                {categories?.map((category : Category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
