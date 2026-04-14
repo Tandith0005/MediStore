@@ -8,8 +8,8 @@ export interface Category {
 }
 
 // Get all categories
-export const getCategories = async () => {
-  const response = await api.get<Category[]>("/categories");
+export const getCategories = async (): Promise<Category[]> => {
+  const response = await api.get("/categories");
   return response.data.data || response.data;
 };
 
