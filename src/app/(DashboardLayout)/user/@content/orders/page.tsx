@@ -30,13 +30,13 @@ export default function OrdersPage() {
 
   // Extract orders array from response
   const orders = React.useMemo(() => {
-    if (!ordersData) return [];
-    if (Array.isArray(ordersData)) return ordersData;
-    if (ordersData && typeof ordersData === 'object' && 'data' in ordersData && Array.isArray(ordersData.data)) {
-      return ordersData.data;
-    }
-    return [];
-  }, [ordersData]);
+  if (!ordersData) return [];
+  if (ordersData && typeof ordersData === 'object' && 'data' in ordersData && Array.isArray(ordersData.data)) {
+    return ordersData.data;
+  }
+  if (Array.isArray(ordersData)) return ordersData;
+  return [];
+}, [ordersData]);
 
   if (isLoading) {
     return (

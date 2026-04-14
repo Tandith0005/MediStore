@@ -179,7 +179,7 @@ export default function ShopPage() {
                   </button>
 
                   {[...Array(Math.min(5, meta.totalPage))].map((_, i) => {
-                    let pageNum = meta.page <= 3 
+                    const pageNum = meta.page <= 3 
                       ? i + 1 
                       : meta.page >= meta.totalPage - 2 
                       ? meta.totalPage - 4 + i 

@@ -44,22 +44,13 @@ export const getUserDashboardStats = async () => {
 
 
 
-// Get user orders - FIXED to return array
+// Get user orders
 export const getUserOrders = async (): Promise<Order[]> => {
   const response = await api.get("/orders");
-  // Backend returns { data: [], meta: {} }
-  if (
-    response.data &&
-    response.data.data &&
-    Array.isArray(response.data.data)
-  ) {
-    return response.data.data;
-  }
-  // If response is directly an array
-  if (Array.isArray(response.data)) {
-    return response.data;
-  }
-  return [];
+
+  const data = response.data?.data ?? response.data;
+
+  return data;
 };
 
 // Create order

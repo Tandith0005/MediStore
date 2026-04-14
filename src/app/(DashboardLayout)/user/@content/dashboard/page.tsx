@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ShoppingCart, PackageCheck, Star, AlertCircle, Loader2 } from "lucide-react";
 import { useUserDashboardStats} from "@/hooks/useUserDashboard";
 import { useCart } from "@/hooks/useCart";
+import { Order } from "@/services/userDashboard.service";
 
 export default function UserDashboard() {
   const { data: stats, isLoading: statsLoading, isError: statsError } = useUserDashboardStats();
@@ -130,7 +131,7 @@ export default function UserDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {recentOrders.slice(0, 5).map((order) => (
+                {recentOrders.slice(0, 5).map((order : Order) => (
                   <tr key={order.id}>
                     <td>#{order.id?.slice(-8) || order.id}</td>
                     <td>{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "N/A"}</td>
