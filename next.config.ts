@@ -21,17 +21,17 @@ const nextConfig = {
     ],
   },
   async rewrites() {
-    const authDestination = process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:5000/api/auth";
-    const apiDestination = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+    // const authDestination = process.env.NEXT_PUBLIC_AUTH_URL || "http://localhost:5000/api/auth";
+    // const apiDestination = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
     return [
       {
         source: "/api/auth/:path*",
-        destination: `${authDestination}/:path*`,
+        destination: `https://medi-store-server-tau.vercel.app/api/auth/:path*`,
       },
       {
         source: "/api/v1/:path*",
-        destination: `${apiDestination}/:path*`,
+        destination: `https://medi-store-server-tau.vercel.app/api/v1/:path*`,
       },
     ];
   },
