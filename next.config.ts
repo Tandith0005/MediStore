@@ -30,7 +30,7 @@ const nextConfig = {
         destination: `${authDestination}/:path*`,
       },
       {
-        source: "/api/:path*",
+        source: "/api/v1/:path*",
         destination: `${apiDestination}/:path*`,
       },
     ];
